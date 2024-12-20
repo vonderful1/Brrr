@@ -1,0 +1,59 @@
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Title and description
+st.title("Enhanced BRRR Underwriter")
+st.write("Analyze your BRRR (Buy, Rehab, Rent, Refinance) project with detailed inputs, outputs, and visuals.")
+
+# Input fields
+st.header("Input Your Project Details")
+purchase_price = st.number_input("Purchase Price ($)", min_value=0, value=250000, step=1000)
+rehab_cost = st.number_input("Rehab Cost ($)", min_value=0, value=93500, step=1000)
+arv = st.number_input("Estimated After Repair Value (ARV) ($)", min_value=0, value=500000, step=1000)
+ltc_percentage = st.slider("Approved Loan-to-Cost (%)", min_value=0, max_value=100, value=70)
+monthly_rent = st.number_input("Estimated Monthly Rent ($)", min_value=0, value=3000, step=100)
+
+# Dropdown for financing options
+financing_option = st.selectbox("Select Financing Option", ["Conventional Loan", "Hard Money Loan", "Private Lender"])
+
+# Calculations
+total_cost = purchase_price + rehab_cost
+ltc_amount = (ltc_percentage / 100) * total_cost
+equity = arv - total_cost
+cash_required = total_cost - ltc_amount
+gross_rent = monthly_rent * 12
+roi = (gross_rent / total_cost) * 100 if total_cost > 0 else 0
+
+# Outputs
+st.header("Analysis Results")
+st.write(f"**Total Cost:** ${total_cost:,.2f}")
+st.write(f"**Loan-to-Cost Amount (LTC):** ${ltc_amount:,.2f}")
+st.write(f"**Equity After Repairs:** ${equity:,.2f}")
+st.write(f"**Cash Required:** ${cash_required:,.2f}")
+st.write(f"**Gross Annual Rent:** ${gross_rent:,.2f}")
+st.write(f"**ROI (Return on Investment):** {roi:.2f}%")
+
+# Graphs
+st.header("Visualizations")
+fig, ax = plt.subplots()
+labels = ['Purchase Price', 'Rehab Cost', 'Equity']
+values = [purchase_price, rehab_cost, equity]
+ax.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
+ax.axis('equal')  # Equal aspect ratio ensures the pie chart is circular.
+st.pyplot(fig)
+
+# Exporting results
+st.header("Export Results")
+export_data = {
+    "Metric": ["Purchase Price", "Rehab Cost", "Total Cost", "LTC Amount", "Equity", "Cash Required", "Gross Annual Rent", "ROI"],
+    "Value": [purchase_price, rehab_cost, total_cost, ltc_amount, equity, cash_required, gross_rent, roi]
+}
+df_export = pd.DataFrame(export_data)
+if st.button("Download Results as CSV"):
+    df_export.to_csv("BRRR_Analysis_Results.csv", index=False)
+    st.success("Results exported successfully! Check your file directory.")
+
+# Additional tips
+st.header("Pro Tips")
+st.write("Ensure your rehab budget includes contingencies. Consider your financing option's interest rates and terms.")
